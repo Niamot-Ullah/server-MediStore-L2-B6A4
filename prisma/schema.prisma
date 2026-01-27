@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Categories {
+  id          String     @id @default(uuid())
+  name        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  medicines   Medicine[]
+
+  @@map("categories")
+}
+
+model Medicine {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  categoryId  String
+  category    Categories @relation(fields: [categoryId], references: [id])
+  sellerId    String //better auth
+  price       Decimal    @db.Decimal(10, 2)
+  stock       Int
+  image       String?
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  orders      Order[]
+  reviews     Review[]
+
+  @@index([sellerId])
+  @@map("medicines")
+}
+
+model Review {
+  id         String   @id @default(uuid())
+  rating     Int?      @db.SmallInt
+  comment    String?
+  customerId String //better auth
+  medicineId String
+  medicine   Medicine @relation(fields: [medicineId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([customerId, medicineId])
+  @@index([customerId])
+  @@map("reviews")
+}
+
+model Order {
+  id         String   @id @default(uuid())
+  medicineId String
+  medicine   Medicine @relation(fields: [medicineId], references: [id])
+
+  medicineName  String
+  medicinePrice Decimal @db.Decimal(10, 2)
+
+  customerId      String // better auth
+  status          OrderStatus @default(PLACED)
+  totalAmount     Decimal     @db.Decimal(10, 2)
+  shippingAddress String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([medicineId])
+  @@index([customerId])
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PLACED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
