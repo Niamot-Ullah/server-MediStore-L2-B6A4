@@ -28,7 +28,7 @@ model Medicine {
   price       Decimal    @db.Decimal(10, 2)
   stock       Int
   image       String?
-  isActive    Boolean    @default(true)
+  isFeatured    Boolean    @default(true)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   orders      Order[]
