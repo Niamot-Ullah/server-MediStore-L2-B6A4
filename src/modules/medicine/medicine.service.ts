@@ -28,10 +28,15 @@ const createMedicine = async (data: CreateMedicineInput, userId: string) => {
 
 const getAllMedicine = async (payload: {
     search: string | undefined,
-    isFeatured: boolean | undefined
+    isFeatured: boolean | undefined,
+    page: number;
+    limit: number;
+    skip: number;
+    sortBy: string;
+    sortOrder: string;
 
 }) => {
-    const { search, isFeatured } = payload
+    const { search, isFeatured, page, limit, skip, sortBy, sortOrder } = payload
 
     const andConditions: MedicineWhereInput[] = [];
     if (search) {
@@ -57,15 +62,35 @@ const getAllMedicine = async (payload: {
             isFeatured,
         });
     }
+    console.log(page,limit,skip);
 
 
     const result = await prisma.medicine.findMany({
+        take: limit,
+        skip,
         where: {
             AND: andConditions
         },
+        orderBy: {
+            [sortBy]: sortOrder,
+        },
+
     })
-    return result
-}
+    const total = await prisma.medicine.count({
+        where: {
+            AND: andConditions,
+        },
+    });
+    return {
+        data: result,
+        pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        },
+    }
+    };
 
 
 
@@ -78,8 +103,8 @@ const getAllMedicine = async (payload: {
 
 
 
-export const medicineService = {
-    createMedicine,
-    getAllMedicine,
+    export const medicineService = {
+        createMedicine,
+        getAllMedicine,
 
-}
+    }

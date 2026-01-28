@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { medicineService } from "./medicine.service";
+import paginationSortingHelper from "../../helpers/paginationSortingHelper";
 
 const createMedicine = async (req: Request, res: Response) => {
     console.log(req.body);
@@ -39,11 +40,18 @@ const getAllMedicine = async (req: Request, res: Response) => {
                     ? false
                     : undefined
             : undefined;
-            // console.log(isFeatured);
+
+        const { page, limit, skip, sortBy, sortOrder } = paginationSortingHelper(req.query)
+
 
         const result = await medicineService.getAllMedicine({
             search: searchString,
             isFeatured,
+            page ,
+            limit,
+            skip,
+            sortBy,
+            sortOrder
         })
         res.status(200).json({
             success: true,
