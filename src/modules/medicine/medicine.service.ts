@@ -62,7 +62,7 @@ const getAllMedicine = async (payload: {
             isFeatured,
         });
     }
-    console.log(page,limit,skip);
+    // console.log(page,limit,skip);
 
 
     const result = await prisma.medicine.findMany({
@@ -90,7 +90,117 @@ const getAllMedicine = async (payload: {
             totalPages: Math.ceil(total / limit),
         },
     }
+};
+
+const getMyPostedMedicine = async (sellerId: string) => {
+    await prisma.user.findUniqueOrThrow({
+        where: {
+            id: sellerId
+        }
+    })
+
+    const result = await prisma.medicine.findMany({
+        where: {
+            sellerId
+        },
+        orderBy: {
+            "createdAt": 'desc'
+        }
+    })
+    const totalPostedMedicine = await prisma.medicine.count({
+        where: {
+            sellerId
+        }
+    })
+
+    return { result, totalPostedMedicine }
+}
+
+const getStats = async () => {
+    const [
+        totalMedicine,
+        featuredMedicine,
+        notFeaturedMedicine,
+        totalUser,
+        totalAdmin,
+        totalSeller,
+        totalCustomer,
+
+
+    ] = await Promise.all([
+        prisma.medicine.count(),
+        prisma.medicine.count({ where: { isFeatured: true } }),
+        prisma.medicine.count({ where: { isFeatured: false } }),
+
+
+        prisma.user.count(),
+        prisma.user.count({ where: { role: "ADMIN" } }),
+        prisma.user.count({ where: { role: "SELLER" } }),
+        prisma.user.count({ where: { role: "CUSTOMER" } }),
+
+    ]);
+    return {
+        totalMedicine,
+        featuredMedicine,
+        notFeaturedMedicine,
+        totalUser,
+        totalAdmin,
+        totalSeller,
+        totalCustomer,
+
     };
+};
+
+
+const getMedicineById = async (id: string) => {
+    return await prisma.medicine.findUnique({
+        where: { id }
+    })
+}
+const updateMedicine = async (id: string, userId: string, data: Partial<Medicine>, isSeller: boolean, isAdmin: boolean) => {
+
+    const medicineData = await prisma.medicine.findUniqueOrThrow({
+        where: {
+            id
+        },
+        select: {
+            id: true,
+            sellerId: true
+        }
+    })
+
+    if (!isAdmin && !isSeller && (medicineData.sellerId !== userId)) throw new Error("Your are not owner of this product")
+
+    if (!isAdmin) delete data.isFeatured;
+
+    const result = await prisma.medicine.update({
+        where: {
+            id
+        },
+        data
+    })
+    return result
+
+}
+const deleteMedicine = async (id: string, userId: string, isSeller: boolean, isAdmin: boolean) => {
+    const medicineData = await prisma.medicine.findUniqueOrThrow({
+        where: {
+            id
+        },
+        select: {
+            id: true,
+            sellerId: true
+        }
+    })
+
+    if (!isAdmin && !isSeller && (medicineData.sellerId !== userId)) throw new Error("Your are not owner of this product")
+    const result = await prisma.medicine.delete({
+        where: {
+            id
+        }
+    })
+    return result
+}
 
 
 
@@ -100,11 +210,13 @@ const getAllMedicine = async (payload: {
 
 
 
+export const medicineService = {
+    createMedicine,
+    getAllMedicine,
+    getMedicineById,
+    updateMedicine,
+    deleteMedicine,
+    getMyPostedMedicine,
+    getStats
 
-
-
-    export const medicineService = {
-        createMedicine,
-        getAllMedicine,
-
-    }
+}
