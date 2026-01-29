@@ -4,13 +4,12 @@ import { toNodeHandler } from "better-auth/node";
 import { medicineRouter } from './modules/medicine/medicine.router';
 import { categoriesRouter } from './modules/categories/categories.router';
 import { auth } from './lib/auth';
+import { reviewsRouter } from './modules/reviews/reviews.router';
 
 const app = express();
 
-//  JSON FIRST
-app.use(express.json());
 
-//  CORS SECOND
+app.use(express.json());
 app.use(
     cors({
         origin: [
@@ -23,7 +22,6 @@ app.use(
     })
 );
 
-//  AUTH AFTER json + cors
 app.all("/api/auth/*splat", toNodeHandler(auth));
 
 
@@ -31,6 +29,7 @@ app.all("/api/auth/*splat", toNodeHandler(auth));
 
 app.use("/api/medicine", medicineRouter)
 app.use("/api/categories", categoriesRouter)
+app.use("/api/reviews", reviewsRouter)
 
 
 
