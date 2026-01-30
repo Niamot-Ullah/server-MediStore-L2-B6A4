@@ -6,6 +6,9 @@ import { categoriesRouter } from './modules/categories/categories.router';
 import { auth } from './lib/auth';
 import { reviewsRouter } from './modules/reviews/reviews.router';
 import { userRouter } from './modules/user/user.router';
+import { ordersRouter } from './modules/orders/orders.router';
+import errorHandler from './middileware/errorHandler';
+import { notFound } from './middileware/notFound';
 
 const app = express();
 
@@ -32,6 +35,7 @@ app.use("/api/medicine", medicineRouter)
 app.use("/api/categories", categoriesRouter)
 app.use("/api/reviews", reviewsRouter)
 app.use("/api/users/me", userRouter)
+app.use("/api/orders", ordersRouter)
 
 
 
@@ -39,5 +43,8 @@ app.use("/api/users/me", userRouter)
 app.get('/', (req, res) => {
     res.send('Welcome to MediStore');
 })
+
+app.use(errorHandler)
+app.use(notFound)
 
 export default app;
