@@ -22,7 +22,7 @@ const createReviews = async (payload: CreateReviewPayload) => {
 };
 const getMedicineReview = async (medicineId: string) => {
     return await prisma.review.findMany({
-        where: { medicineId }
+        where: { medicineId },
     })
 }
 

@@ -154,12 +154,36 @@ const getMedicineById = async (id: string) => {
     return await prisma.medicine.findUnique({
         where: { id },
         include: {
-            category: true, 
-            reviews:true,
-            
+            category: {
+                select: {
+                    id: true,
+                    name: true,
+                },
+            },
+            reviews: {
+                include: {
+                    customer: {
+                        select: {
+                            id: true,
+                            name: true,
+                            image: true,
+                        },
+                    },
+                },
+            },
         },
-    })
+    });
 }
+
+// include: {
+//             category: true, 
+//             reviews:true
+//         },
+
+
+
+
+
 const updateMedicine = async (id: string, userId: string, data: Partial<Medicine>, isSeller: boolean, isAdmin: boolean) => {
 
     const medicineData = await prisma.medicine.findUniqueOrThrow({
